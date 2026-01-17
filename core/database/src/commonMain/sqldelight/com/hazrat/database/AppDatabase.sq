@@ -1,0 +1,90 @@
+CREATE TABLE reminderEntity(
+    id TEXT NOT NULL PRIMARY KEY,
+
+    contact_name TEXT NOT NULL,
+    contact_number TEXT NOT NULL,
+
+    message TEXT NOT NULL,
+
+    scheduled_at INTEGER NOT NULL,
+    triggered_at INTEGER NOT NULL,
+    sent_at INTEGER,
+
+    repeat_rule TEXT ,
+    state TEXT NOT NULL,
+
+    retry_count INTEGER NOT NULL DEFAULT 0,
+
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+
+);
+
+CREATE INDEX reminder_state_index ON reminderEntity(state);
+CREATE INDEX reminder_schedule_index ON reminderEntity(scheduled_at);
+
+CREATE TABLE app_state(
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+selectAllReminders:
+SELECT * FROM reminderEntity ORDER BY scheduled_at ASC;
+
+selectActiveReminders:
+SELECT * FROM reminderEntity
+WHERE state IN ('SCHEDULED','PENDING')
+ORDER BY scheduled_at ASC ;
+
+selectReminderById:
+SELECT * FROM  reminderEntity WHERE id = ?;
+
+insertReminder:
+INSERT INTO reminderEntity (
+    id,
+    contact_name,
+    contact_number,
+    message,
+    scheduled_at,
+    triggered_at,
+    sent_at,
+    repeat_rule,
+    state,
+    retry_count,
+    created_at,
+    updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateReminder:
+UPDATE reminderEntity SET
+    contact_name = ?,
+    contact_number = ?,
+    message = ?,
+    scheduled_at = ?,
+    triggered_at = ?,
+    sent_at = ?,
+    repeat_rule = ?,
+    state = ?,
+    retry_count = ?,
+    updated_at = ?
+WHERE id = ?;
+
+deleteReminder:
+DELETE FROM reminderEntity WHERE id = ?;
+
+-- app state
+selectAllAppState:
+SELECT * FROM app_state;
+
+upsertAppState:
+INSERT OR REPLACE INTO app_state(key, value) VALUES (?, ?);
+
+
+updateReminderState:
+UPDATE reminderEntity
+SET
+    state = ?,
+    triggered_at = ?,
+    sent_at = ?,
+    updated_at = ?
+WHERE id = ?;
